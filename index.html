@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0B0D10">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Calcul — Training</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== MENU ===== -->
+  <div id="screen-menu" class="screen">
+    <div class="menu-top-row">
+      <div class="eyebrow" data-i18n="eyebrow">Training — mental math</div>
+      <button class="btn-lang" id="btn-lang">FR</button>
+    </div>
+    <h1 data-i18n="h1">Ready to start<br>a session?</h1>
+
+    <div class="menu-wrap">
+      <div>
+        <div class="eyebrow" style="margin-bottom:10px;" data-i18n="ops_title">Operations included</div>
+          <div class="op-grid" id="op-grid">
+          <div class="op-chip active" data-op="addition"><span data-i18n="op_add">Addition</span> <b>+</b></div>
+          <div class="op-chip active" data-op="soustraction"><span data-i18n="op_sub">Subtraction</span> <b>−</b></div>
+          <div class="op-chip active" data-op="multiplication"><span data-i18n="op_mult">Multiplication</span> <b>×</b></div>
+          <div class="op-chip active" data-op="division"><span data-i18n="op_div">Division</span> <b>÷</b></div>
+          <div class="op-chip active" data-op="carre"><span data-i18n="op_sq">Square</span> <b>²</b></div>
+          <div class="op-chip active" data-op="cube"><span data-i18n="op_cube">Cube</span> <b>³</b></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="eyebrow" style="margin-bottom:10px;" data-i18n="length_title">Session length</div>
+        <div class="length-row" id="length-row">
+          <button class="length-btn" data-len="25">25</button>
+          <button class="length-btn active" data-len="50">50</button>
+          <button class="length-btn" data-len="75">75</button>
+          <button class="length-btn" data-len="100">100</button>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="btn-start" data-i18n="btn_start">Start training</button>
+      <button class="btn-ghost" id="btn-reset" data-i18n="btn_reset">Reset all statistics</button>
+
+      <div class="stats-line">
+        <span><span data-i18n="stats_tracked">Questions tracked</span> : <b id="stat-total" style="color:var(--text)">0</b></span>
+        <span><span data-i18n="stats_red">In red zone</span> : <b id="stat-priority">0</b></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GAME ===== -->
+  <div id="screen-game" class="screen hidden">
+    <div class="game-top">
+      <div class="qcount" id="qcount">Question 1/20</div>
+      <div class="game-top-right">
+        <button class="btn-stop" id="btn-stop" data-i18n="btn_stop">Stop</button>
+        <div class="zone-tag"><span class="zone-dot" id="zone-dot"></span><span id="zone-label">unknown</span></div>
+      </div>
+    </div>
+    <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+
+    <div class="question-wrap">
+      <div class="question-card" id="question-card">
+        <div class="question-text" id="question-text">7 × 8 = ?</div>
+        <div class="answer-display" id="answer-display"><span class="ph">0</span></div>
+      </div>
+      <div class="feedback-flash" id="feedback"></div>
+
+      <div class="keypad" id="keypad">
+        <button class="key-btn" data-key="1">1</button>
+        <button class="key-btn" data-key="2">2</button>
+        <button class="key-btn" data-key="3">3</button>
+        <button class="key-btn" data-key="4">4</button>
+        <button class="key-btn" data-key="5">5</button>
+        <button class="key-btn" data-key="6">6</button>
+        <button class="key-btn" data-key="7">7</button>
+        <button class="key-btn" data-key="8">8</button>
+        <button class="key-btn" data-key="9">9</button>
+        <button class="key-btn key-clear" data-key="back">⌫</button>
+        <button class="key-btn" data-key="0">0</button>
+        <button class="key-btn key-validate" data-key="ok">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== END ===== -->
+  <div id="screen-end" class="screen hidden">
+    <div class="eyebrow" data-i18n="series_done">Session complete</div>
+    <div class="score-big" id="end-score">0/0</div>
+    <div class="score-sub" id="end-avg">Average time : 0.00s</div>
+
+    <div id="end-priority-block">
+      <div class="eyebrow" style="margin-bottom:10px;" data-i18n="red_zone_title">Red zone — to consolidate</div>
+      <div class="priority-list" id="priority-list"></div>
+    </div>
+    <div id="end-empty-note" class="empty-note hidden" data-i18n="empty_note">No questions in red zone. Nice session.</div>
+
+    <div class="end-actions">
+      <button class="btn-primary" id="btn-replay" data-i18n="btn_replay">Start new session</button>
+      <button class="btn-ghost" id="btn-menu" data-i18n="btn_back">Back to menu</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

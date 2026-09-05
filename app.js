@@ -1,293 +1,88 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0B0D10">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Calcul — Entraînement</title>
-<style>
-  :root{
-    --bg: #0B0D10;
-    --surface: #14181D;
-    --surface-2: #1B2128;
-    --border: #262E37;
-    --text: #E7EAEE;
-    --muted: #7C8592;
-    --accent: #5EEAD4;
-    --accent-dim: #1F3A38;
-
-    --zone-facile: #4ADE80;
-    --zone-moyenne: #FBBF24;
-    --zone-difficile: #FB7A3C;
-    --zone-prioritaire: #EF4444;
-    --zone-unknown: #566270;
-
-    --mono: 'SFMono-Regular', ui-monospace, Menlo, Consolas, monospace;
-    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-
-  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  html, body{
-    margin:0; padding:0; height:100%;
-    background: var(--bg); color: var(--text);
-    font-family: var(--sans);
-    overscroll-behavior: none;
-  }
-
-  #app{
-    min-height: 100vh;
-    min-height: 100dvh;
-    display:flex; flex-direction:column;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-
-  .screen{ flex:1; display:flex; flex-direction:column; padding: 24px 20px; }
-  .hidden{ display:none !important; }
-
-  /* ---------- Header / eyebrow ---------- */
-  .eyebrow{
-    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
-    text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
-  }
-  h1{
-    font-size: 26px; font-weight: 700; margin: 0 0 28px 0; letter-spacing: -0.01em;
-  }
-
-  /* ---------- Menu ---------- */
-  .menu-wrap{ display:flex; flex-direction:column; justify-content:center; flex:1; gap: 28px; }
-  .op-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
-  .op-chip{
-    background: var(--surface); border:1px solid var(--border); border-radius: 12px;
-    padding: 14px 12px; font-family: var(--mono); font-size: 13px; color: var(--muted);
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .op-chip b{ color: var(--text); font-size: 18px; font-weight: 700; }
-
-  .length-row{ display:flex; gap:8px; }
-  .length-btn{
-    flex:1; padding: 12px 0; border-radius: 10px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--muted); font-family: var(--mono); font-size: 14px;
-  }
-  .length-btn.active{ border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
-
-  button{ font-family: var(--sans); cursor:pointer; border:none; }
-
-  .btn-primary{
-    background: var(--accent); color: #04201D; font-weight: 700; font-size: 16px;
-    padding: 17px; border-radius: 14px; letter-spacing: 0.01em;
-  }
-  .btn-primary:active{ transform: scale(0.98); }
-
-  .btn-ghost{
-    background: transparent; color: var(--muted); font-size: 14px;
-    padding: 12px; border: 1px solid var(--border); border-radius: 12px;
-  }
-
-  .stats-line{
-    font-family: var(--mono); font-size: 12px; color: var(--muted);
-    display:flex; justify-content:space-between; border-top: 1px solid var(--border);
-    padding-top: 14px; margin-top: 6px;
-  }
-  .stats-line span b{ color: var(--zone-prioritaire); }
-
-  /* ---------- Game screen ---------- */
-  .game-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 18px; }
-  .qcount{ font-family: var(--mono); font-size: 12px; color: var(--muted); }
-
-  .zone-tag{
-    display:flex; align-items:center; gap:6px; font-family: var(--mono);
-    font-size: 11px; letter-spacing: 0.06em; text-transform:uppercase; color: var(--muted);
-  }
-  .zone-dot{ width:8px; height:8px; border-radius:50%; background: var(--zone-unknown); flex-shrink:0; }
-
-  .timer-track{
-    height: 4px; background: var(--surface-2); border-radius: 4px; overflow:hidden; margin-bottom: 40px;
-  }
-  .timer-fill{
-    height:100%; width:100%; background: var(--zone-unknown); transform-origin: left;
-    transition: transform linear;
-  }
-
-  .question-wrap{
-    flex:1; display:flex; flex-direction:column; align-items:center;
-    padding-top: 6vh; min-height: 0;
-  }
-
-  .question-card{
-    width:100%; max-width: 340px; background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 20px; padding: 30px 20px; display:flex; flex-direction:column;
-    align-items:center; gap: 16px; transition: border-color .12s, background .12s;
-  }
-  .question-card.correct{ border-color: var(--zone-facile); background: rgba(74,222,128,0.08); }
-  .question-card.wrong{ border-color: var(--zone-prioritaire); background: rgba(239,68,68,0.08); animation: shake 0.25s; }
-
-  .question-text{
-    font-family: var(--mono); font-size: 44px; font-weight: 700; letter-spacing: -0.01em;
-    color: var(--text);
-  }
-
-  .answer-display{
-    font-family: var(--mono); font-size: 38px; font-weight: 700; min-height: 48px;
-    color: var(--text); letter-spacing: 0.02em;
-  }
-  .answer-display .ph{ color: var(--muted); }
-  .answer-display .cursor{
-    display:inline-block; width:3px; height: 34px; background: var(--accent);
-    margin-left: 3px; vertical-align: -6px; animation: blink 1s step-start infinite;
-  }
-
-  @keyframes blink{ 50%{ opacity: 0; } }
-
-  @keyframes shake{
-    0%,100%{ transform: translateX(0); }
-    25%{ transform: translateX(-6px); }
-    75%{ transform: translateX(6px); }
-  }
-
-  .feedback-flash{
-    font-family: var(--mono); font-size: 19px; font-weight: 700; min-height: 26px;
-    margin-top: 16px; text-align:center;
-  }
-  .feedback-flash.correct{ color: var(--zone-facile); }
-  .feedback-flash.wrong{ color: var(--zone-prioritaire); }
-
-  #screen-game{ padding-left: 6px; padding-right: 6px; }
-
-  /* ---------- On-screen keypad ---------- */
-  .keypad{
-    margin-top: auto; padding-top: 18px; width: 100%;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
-  }
-  .key-btn{
-    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-    color: var(--text); font-family: var(--mono); font-size: 26px; font-weight: 600;
-    padding: 16px 0; min-height: 56px; -webkit-user-select:none; user-select:none;
-  }
-  .key-btn:active{ background: var(--surface-2); }
-  .key-clear{ color: var(--muted); font-size: 20px; }
-  .key-validate{
-    background: var(--accent); color: #04201D; font-size: 20px; font-weight: 700;
-    grid-column: span 1;
-  }
-
-  /* ---------- End screen ---------- */
-  .score-big{ font-family: var(--mono); font-size: 44px; font-weight: 700; margin: 4px 0; }
-  .score-sub{ color: var(--muted); font-size: 13px; margin-bottom: 26px; }
-
-  .priority-list{ display:flex; flex-direction:column; gap:6px; margin-bottom: 24px; max-height: 220px; overflow-y:auto; }
-  .priority-item{
-    display:flex; align-items:center; justify-content:space-between;
-    background: var(--surface); border:1px solid var(--border); border-left: 3px solid var(--zone-prioritaire);
-    border-radius: 8px; padding: 10px 14px; font-family: var(--mono); font-size: 14px;
-  }
-  .priority-item span{ color: var(--muted); font-size: 11px; }
-
-  .end-actions{ display:flex; flex-direction:column; gap:10px; margin-top: auto; }
-
-  .empty-note{ color: var(--muted); font-size: 13px; font-family: var(--mono); margin-bottom: 20px; }
-</style>
-</head>
-<body>
-<div id="app">
-
-  <!-- ===== MENU ===== -->
-  <div id="screen-menu" class="screen">
-    <div class="eyebrow">Entraînement — calcul mental</div>
-    <h1>Prêt à lancer<br>une série ?</h1>
-
-    <div class="menu-wrap">
-      <div>
-        <div class="eyebrow" style="margin-bottom:10px;">Opérations incluses</div>
-        <div class="op-grid">
-          <div class="op-chip">Multiplication <b>×</b></div>
-          <div class="op-chip">Division <b>÷</b></div>
-          <div class="op-chip">Carré <b>²</b></div>
-          <div class="op-chip">Cube <b>³</b></div>
-        </div>
-      </div>
-
-      <div>
-        <div class="eyebrow" style="margin-bottom:10px;">Longueur de la série</div>
-        <div class="length-row" id="length-row">
-          <button class="length-btn" data-len="50">50</button>
-          <button class="length-btn active" data-len="100">100</button>
-          <button class="length-btn" data-len="200">200</button>
-          <button class="length-btn" data-len="500">500</button>
-        </div>
-      </div>
-
-      <button class="btn-primary" id="btn-start">Démarrer l'entraînement</button>
-      <button class="btn-ghost" id="btn-reset">Réinitialiser toutes les statistiques</button>
-
-      <div class="stats-line">
-        <span>Questions suivies : <b id="stat-total" style="color:var(--text)">0</b></span>
-        <span>En zone rouge : <b id="stat-priority">0</b></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== GAME ===== -->
-  <div id="screen-game" class="screen hidden">
-    <div class="game-top">
-      <div class="qcount" id="qcount">Question 1/20</div>
-      <div class="zone-tag"><span class="zone-dot" id="zone-dot"></span><span id="zone-label">unknown</span></div>
-    </div>
-    <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
-
-    <div class="question-wrap">
-      <div class="question-card" id="question-card">
-        <div class="question-text" id="question-text">7 × 8 = ?</div>
-        <div class="answer-display" id="answer-display"><span class="ph">0</span></div>
-      </div>
-      <div class="feedback-flash" id="feedback"></div>
-
-      <div class="keypad" id="keypad">
-        <button class="key-btn" data-key="1">1</button>
-        <button class="key-btn" data-key="2">2</button>
-        <button class="key-btn" data-key="3">3</button>
-        <button class="key-btn" data-key="4">4</button>
-        <button class="key-btn" data-key="5">5</button>
-        <button class="key-btn" data-key="6">6</button>
-        <button class="key-btn" data-key="7">7</button>
-        <button class="key-btn" data-key="8">8</button>
-        <button class="key-btn" data-key="9">9</button>
-        <button class="key-btn key-clear" data-key="back">⌫</button>
-        <button class="key-btn" data-key="0">0</button>
-        <button class="key-btn key-validate" data-key="ok">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== END ===== -->
-  <div id="screen-end" class="screen hidden">
-    <div class="eyebrow">Série terminée</div>
-    <div class="score-big" id="end-score">0/0</div>
-    <div class="score-sub" id="end-avg">Temps moyen : 0.00s</div>
-
-    <div id="end-priority-block">
-      <div class="eyebrow" style="margin-bottom:10px;">Zone rouge — à consolider</div>
-      <div class="priority-list" id="priority-list"></div>
-    </div>
-    <div id="end-empty-note" class="empty-note hidden">Aucune question en zone rouge. Belle série.</div>
-
-    <div class="end-actions">
-      <button class="btn-primary" id="btn-replay">Relancer une série</button>
-      <button class="btn-ghost" id="btn-menu">Retour au menu</button>
-    </div>
-  </div>
-
-</div>
-
-<script>
 (function(){
   "use strict";
 
   var STORAGE_KEY = "calc_trainer_stats_v1";
+  var LANG_KEY = "calc_trainer_lang";
+
+  var STRINGS = {
+    en: {
+      eyebrow: "Training — mental math",
+      h1: "Ready to start<br>a session?",
+      ops_title: "Operations included",
+      op_mult: "Multiplication",
+      op_div: "Division",
+      op_add: "Addition",
+      op_sub: "Subtraction",
+      op_sq: "Square",
+      op_cube: "Cube",
+      length_title: "Session length",
+      btn_start: "Start training",
+      btn_reset: "Reset all statistics",
+      stats_tracked: "Questions tracked",
+      stats_red: "In red zone",
+      question_n: "Question",
+      zone_consolidation: "hard (consolidation)",
+      series_done: "Session complete",
+      avg_time: "Average time",
+      red_zone_title: "Red zone — to consolidate",
+      empty_note: "No questions in red zone. Nice session.",
+      btn_replay: "Start new session",
+      btn_back: "Back to menu",
+      btn_stop: "Stop",
+      correct: "✓ Correct",
+      timeout: "✗ Time's up — ",
+      wrong: "✗ Correct answer: ",
+      confirm_reset: "Reset all training statistics?"
+    },
+    fr: {
+      eyebrow: "Entraînement — calcul mental",
+      h1: "Prêt à lancer<br>une série ?",
+      ops_title: "Opérations incluses",
+      op_mult: "Multiplication",
+      op_div: "Division",
+      op_add: "Addition",
+      op_sub: "Soustraction",
+      op_sq: "Carré",
+      op_cube: "Cube",
+      length_title: "Longueur de la série",
+      btn_start: "Démarrer l'entraînement",
+      btn_reset: "Réinitialiser toutes les statistiques",
+      stats_tracked: "Questions suivies",
+      stats_red: "En zone rouge",
+      question_n: "Question",
+      zone_consolidation: "difficile (consolidation)",
+      series_done: "Série terminée",
+      avg_time: "Temps moyen",
+      red_zone_title: "Zone rouge — à consolider",
+      empty_note: "Aucune question en zone rouge. Belle série.",
+      btn_replay: "Relancer une série",
+      btn_back: "Retour au menu",
+      btn_stop: "Arrêter",
+      correct: "✓ Correct",
+      timeout: "✗ Temps écoulé — ",
+      wrong: "✗ Bonne réponse : ",
+      confirm_reset: "Réinitialiser toutes les statistiques d'entraînement ?"
+    }
+  };
+
+  var lang = "en";
+  function t(key){ return STRINGS[lang][key] || key; }
+
+  function setLang(l){
+    lang = l;
+    try{ localStorage.setItem(LANG_KEY, l); }catch(e){}
+    document.documentElement.lang = l;
+    document.querySelectorAll("[data-i18n]").forEach(function(el){
+      el.innerHTML = t(el.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-text]").forEach(function(el){
+      el.textContent = t(el.dataset.i18nText);
+    });
+    var toggle = document.getElementById("btn-lang");
+    if (toggle) toggle.textContent = lang === "en" ? "FR" : "EN";
+    refreshMenuStats();
+  }
+
   var el = {
     menu: document.getElementById('screen-menu'),
     game: document.getElementById('screen-game'),
@@ -295,12 +90,15 @@
     lengthRow: document.getElementById('length-row'),
     btnStart: document.getElementById('btn-start'),
     btnReset: document.getElementById('btn-reset'),
+    opGrid: document.getElementById('op-grid'),
+    btnLang: document.getElementById('btn-lang'),
     statTotal: document.getElementById('stat-total'),
     statPriority: document.getElementById('stat-priority'),
     qcount: document.getElementById('qcount'),
     zoneDot: document.getElementById('zone-dot'),
     zoneLabel: document.getElementById('zone-label'),
     timerFill: document.getElementById('timer-fill'),
+    btnStop: document.getElementById('btn-stop'),
     questionCard: document.getElementById('question-card'),
     questionText: document.getElementById('question-text'),
     answerDisplay: document.getElementById('answer-display'),
@@ -323,7 +121,9 @@
     unknown: 'var(--zone-unknown)'
   };
 
-  var sessionLength = 100;
+  var sessionLength = 50;
+  var selectedOps = { multiplication: true, division: true, carre: true, cube: true, addition: true, soustraction: true };
+  var sessionBackup = null;
   var stats = {};
   var currentInput = '';
 
@@ -333,7 +133,7 @@
     questionNumber: 0,
     score: 0,
     totalTime: 0,
-    current: null,      // {a,b,op,key}
+    current: null,
     startTime: 0,
     timeLimit: 6,
     answered: false,
@@ -367,6 +167,20 @@
       });
     });
 
+    nums.forEach(function(i){
+      nums.forEach(function(j){
+        s["addition_" + i + "_" + j] = blankEntry();
+      });
+    });
+
+    nums.forEach(function(i){
+      nums.forEach(function(j){
+        if (j === 1) return;
+        var a = i + j, b = j;
+        s["soustraction_" + a + "_" + b] = blankEntry();
+      });
+    });
+
     nums.forEach(function(i){ s["carre_" + i + "_2"] = blankEntry(); });
     nums.forEach(function(i){ s["cube_" + i + "_3"] = blankEntry(); });
 
@@ -377,7 +191,7 @@
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return JSON.parse(raw);
-    }catch(e){ /* fall through */ }
+    }catch(e){}
     var fresh = buildDefaultStats();
     saveStats(fresh);
     return fresh;
@@ -385,7 +199,7 @@
 
   function saveStats(s){
     try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); }
-    catch(e){ /* storage full or unavailable, ignore */ }
+    catch(e){}
   }
 
   // ---------------- menu ----------------
@@ -406,8 +220,23 @@
     sessionLength = parseInt(btn.dataset.len, 10);
   });
 
+  el.opGrid.addEventListener('click', function(e){
+    var chip = e.target.closest('.op-chip');
+    if (!chip) return;
+    var op = chip.dataset.op;
+    // guard: don't deselect last one
+    var activeCount = Object.keys(selectedOps).filter(function(k){ return selectedOps[k]; }).length;
+    if (selectedOps[op] && activeCount === 1) return;
+    selectedOps[op] = !selectedOps[op];
+    chip.classList.toggle('active');
+  });
+
+  el.btnLang.addEventListener('click', function(){
+    setLang(lang === "en" ? "fr" : "en");
+  });
+
   el.btnReset.addEventListener('click', function(){
-    if (!confirm("Réinitialiser toutes les statistiques d'entraînement ?")) return;
+    if (!confirm(t("confirm_reset"))) return;
     stats = buildDefaultStats();
     saveStats(stats);
     refreshMenuStats();
@@ -418,7 +247,7 @@
     var req = elRoot.requestFullscreen || elRoot.webkitRequestFullscreen ||
               elRoot.mozRequestFullScreen || elRoot.msRequestFullscreen;
     if (req) {
-      try { req.call(elRoot).catch(function(){}); } catch(e){ /* ignore */ }
+      try { req.call(elRoot).catch(function(){}); } catch(e){}
     }
   }
 
@@ -426,11 +255,21 @@
   el.btnReplay.addEventListener('click', startGame);
   el.btnMenu.addEventListener('click', showMenu);
 
+  el.btnStop.addEventListener('click', stopGame);
+
+  function stopGame(){
+    if (session.timerHandle) clearTimeout(session.timerHandle);
+    stats = JSON.parse(sessionBackup);
+    saveStats(stats);
+    el.btnStop.classList.add('hidden');
+    showMenu();
+  }
+
   function showMenu(){
     var exitFn = document.exitFullscreen || document.webkitExitFullscreen ||
                  document.mozCancelFullScreen || document.msExitFullscreen;
     if (document.fullscreenElement && exitFn) {
-      try { exitFn.call(document); } catch(e){ /* ignore */ }
+      try { exitFn.call(document); } catch(e){}
     }
     el.end.classList.add('hidden');
     el.game.classList.add('hidden');
@@ -444,6 +283,8 @@
     var buckets = { difficile: [], moyenne: [], facile: [], unknown: [] };
 
     Object.keys(stats).forEach(function(k){
+      var op = k.split('_')[0];
+      if (!selectedOps[op]) return;
       var level = stats[k].level || 'unknown';
       if (level !== 'prioritaire' && buckets[level]) buckets[level].push(k);
     });
@@ -468,8 +309,7 @@
       }
     }
 
-    // safety fill in case buckets were too sparse to reach target length
-    var allKeys = Object.keys(stats).filter(function(k){ return stats[k].level !== 'prioritaire'; });
+    var allKeys = Object.keys(stats).filter(function(k){ return selectedOps[k.split('_')[0]] && stats[k].level !== 'prioritaire'; });
     while (queue.length < sessionLength && allKeys.length) {
       queue.push(allKeys[Math.floor(Math.random() * allKeys.length)]);
     }
@@ -487,7 +327,8 @@
 
   function startGame(){
     goFullscreen();
-    session.priorityQueue = shuffle(Object.keys(stats).filter(function(k){ return stats[k].level === 'prioritaire'; }));
+    sessionBackup = JSON.stringify(stats);
+    session.priorityQueue = shuffle(Object.keys(stats).filter(function(k){ return selectedOps[k.split('_')[0]] && stats[k].level === 'prioritaire'; }));
     session.queue = generateSessionQueue();
     session.questionNumber = 0;
     session.score = 0;
@@ -496,6 +337,7 @@
     el.menu.classList.add('hidden');
     el.end.classList.add('hidden');
     el.game.classList.remove('hidden');
+    el.btnStop.classList.remove('hidden');
 
     nextQuestion();
   }
@@ -515,8 +357,6 @@
     if (level === 'prioritaire') return 10;
     return 6;
   }
-
-  var effectiveLength = 0;
 
   function nextQuestion(){
     if (session.questionNumber >= sessionLength) {
@@ -550,18 +390,20 @@
   function opText(a, b, op){
     if (op === 'multiplication') return a + ' × ' + b + ' = ?';
     if (op === 'division') return a + ' ÷ ' + b + ' = ?';
+    if (op === 'addition') return a + ' + ' + b + ' = ?';
+    if (op === 'soustraction') return a + ' − ' + b + ' = ?';
     if (op === 'carre') return a + '² = ?';
     return a + '³ = ?';
   }
 
   function renderQuestion(entry){
-    var totalPlanned = sessionLength; // display target, priority items add on top
-    el.qcount.textContent = 'Question ' + session.questionNumber + '/' + totalPlanned;
+    var totalPlanned = sessionLength;
+    el.qcount.textContent = t("question_n") + ' ' + session.questionNumber + '/' + totalPlanned;
 
     var level = entry.level || 'unknown';
     el.zoneDot.style.background = ZONE_COLORS[level] || ZONE_COLORS.unknown;
     var label = level;
-    if (level === 'difficile' && entry.post_priority) label = 'difficile (consolidation)';
+    if (level === 'difficile' && entry.post_priority) label = t("zone_consolidation");
     el.zoneLabel.textContent = label;
     el.zoneLabel.style.color = ZONE_COLORS[level] || 'var(--muted)';
 
@@ -585,7 +427,6 @@
     el.timerFill.style.transition = 'none';
     el.timerFill.style.transform = 'scaleX(1)';
     el.timerFill.style.background = ZONE_COLORS[stats[session.current.key].level] || ZONE_COLORS.unknown;
-    // force reflow then animate to 0 over timeLimit seconds
     void el.timerFill.offsetWidth;
     el.timerFill.style.transition = 'transform ' + session.timeLimit + 's linear';
     el.timerFill.style.transform = 'scaleX(0)';
@@ -625,6 +466,8 @@
   function expectedAnswer(a, b, op){
     if (op === 'multiplication') return a * b;
     if (op === 'division') return Math.floor(a / b);
+    if (op === 'addition') return a + b;
+    if (op === 'soustraction') return a - b;
     if (op === 'carre') return a * a;
     return a * a * a;
   }
@@ -648,11 +491,11 @@
       session.score++;
       el.questionCard.classList.add('correct');
       el.feedback.className = 'feedback-flash correct';
-      el.feedback.textContent = '✓ Correct';
+      el.feedback.textContent = t("correct");
     } else {
       el.questionCard.classList.add('wrong');
       el.feedback.className = 'feedback-flash wrong';
-      el.feedback.textContent = session.timedOut ? '✗ Temps écoulé — ' + expected : '✗ Bonne réponse : ' + expected;
+      el.feedback.textContent = session.timedOut ? t("timeout") + expected : t("wrong") + expected;
     }
 
     setTimeout(nextQuestion, correct ? 350 : 1000);
@@ -698,12 +541,13 @@
   // ---------------- end screen ----------------
 
   function endGame(){
+    el.btnStop.classList.add('hidden');
     el.game.classList.add('hidden');
     el.end.classList.remove('hidden');
 
     el.endScore.textContent = session.score + '/' + session.questionNumber;
     var avg = session.totalTime / Math.max(1, session.questionNumber);
-    el.endAvg.textContent = 'Temps moyen : ' + avg.toFixed(2) + 's';
+    el.endAvg.textContent = t("avg_time") + ' : ' + avg.toFixed(2) + 's';
 
     var priorities = Object.keys(stats).filter(function(k){ return stats[k].level === 'prioritaire'; });
 
@@ -716,6 +560,8 @@
         var txt;
         if (p.op === 'multiplication') txt = p.a + ' × ' + p.b;
         else if (p.op === 'division') txt = p.a + ' ÷ ' + p.b;
+        else if (p.op === 'addition') txt = p.a + ' + ' + p.b;
+        else if (p.op === 'soustraction') txt = p.a + ' − ' + p.b;
         else if (p.op === 'carre') txt = p.a + '²';
         else txt = p.a + '³';
         var row = document.createElement('div');
@@ -731,9 +577,9 @@
 
   // ---------------- init ----------------
 
+  try{ lang = localStorage.getItem(LANG_KEY) || "en"; }catch(e){}
+  if (!STRINGS[lang]) lang = "en";
+
   stats = loadStats();
-  refreshMenuStats();
+  setLang(lang);
 })();
-</script>
-</body>
-</html>
