@@ -190,7 +190,12 @@
   function loadStats(){
     try{
       var raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        var stored = JSON.parse(raw);
+        var fresh = buildDefaultStats();
+        Object.keys(stored).forEach(function(k){ fresh[k] = stored[k]; });
+        return fresh;
+      }
     }catch(e){}
     var fresh = buildDefaultStats();
     saveStats(fresh);
